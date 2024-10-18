@@ -17,13 +17,11 @@ const login = async (body: Body) => {
     });
 
     if (!response.ok) {
-      // This will activate the closest `error.js` Error Boundary
       throw new Error('Failed to fetch data')
     }
 
     const result = await response.json();
     sessionStorage.setItem("token", result.token)
-    console.log("Success:", result);
   } catch (error) {
     console.error("Error:", error);
   }
@@ -38,6 +36,10 @@ const register = async (body: Body) => {
       },
       body: JSON.stringify(body),
     });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch data')
+    }
 
     const result = await response.json();
     console.log("Success:", result);

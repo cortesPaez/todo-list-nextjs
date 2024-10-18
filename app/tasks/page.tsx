@@ -4,9 +4,8 @@ import React, { ChangeEvent, useEffect, useState } from "react";
 import { TodoListService } from "../services/todo-list";
 import Modal from "../components/Modal";
 import Input from "../components/Input";
-import { MdCheck, MdDelete, MdEdit } from "react-icons/md";
+import { MdCheck, MdDelete, MdEdit, MdRemoveRedEye } from "react-icons/md";
 import Button from "../components/Button";
-
 const taskDefault = {
   title: "",
   description: "",
@@ -37,11 +36,11 @@ const TodoPage = () => {
         ...prevState,
         completed: checked,
       }));
-      console.log("entro");
     } else {
       setTask((prevState) => ({
         ...prevState,
         [name]: value,
+        completed: checked,
       }));
     }
   };
@@ -67,9 +66,15 @@ const TodoPage = () => {
     setTask(taskDefault);
   };
 
+  const viewTask = async (taskSelected: number) => {
+    const task = await TodoListService.getTaskById(taskSelected);
+    setTask(task);
+  };
+
   const getTitleModal = () => {
     if (showModal.action === "create") return "Crear una nueva tarea";
     if (showModal.action === "update") return "Editar una tarea";
+    if (showModal.action === "view") return `Datos sobre tu tarea`;
     return "";
   };
 
@@ -77,10 +82,15 @@ const TodoPage = () => {
     if (showModal.action === "create") return "Crear tarea";
     if (showModal.action === "update") return "Editar tarea";
     if (showModal.action === "delete") return "Eliminar tarea";
+    if (showModal.action === "view") return "Entendido";
     return "";
   };
 
-  console.log(task);
+  const disabledButton = () => {
+    if (task.title !== "" ) return false;
+    if (task.description !== "") return false;
+    return true;
+  }
 
   return (
     <>
@@ -102,22 +112,23 @@ const TodoPage = () => {
                   name="description"
                   value={task.description}
                 />
-                <div className="flex items-center mb-4">
-                  <input
-                    id="default-checkbox"
-                    type="checkbox"
-                    checked={task.completed}
-                    className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 text-black"
-                    onChange={handleChangeCreate}
-                  />
-                  <label
-                    htmlFor="default-checkbox"
-                    className="ms-2 text-sm font-medium text-black"
-                  >
-                    Default checkbox
-                  </label>
-                </div>
               </>
+            )}
+            {showModal.action === "update" && (
+              <div className="flex items-center mb-4">
+                <input
+                  type="checkbox"
+                  checked={task.completed}
+                  className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 text-black"
+                  onChange={handleChangeCreate}
+                />
+                <label
+                  htmlFor="default-checkbox"
+                  className="ms-2 text-sm font-medium text-black"
+                >
+                  Tarea completada
+                </label>
+              </div>
             )}
             {showModal.action === "delete" && (
               <p className="text-black">
@@ -125,20 +136,42 @@ const TodoPage = () => {
                 ?
               </p>
             )}
+
+            {showModal.action === "view" && (
+              <div className="flex justify-between">
+                <ul className="text-black">
+                  <li>Titulo</li>
+                  <li>Descripcion</li>
+                  <li>Estado de la tarea</li>
+                </ul>
+                <ul className="text-black">
+                  <li>{task.title}</li>
+                  <li>{task.description}</li>
+                  <li>
+                    {task.completed
+                      ? "La tarea a sido completada"
+                      : "Aun no ha sido completada"}
+                  </li>
+                </ul>
+              </div>
+            )}
           </div>
           <div className="py-3 sm:flex sm:flex-row gap-2">
+            {showModal.action !== "view" && (
+              <button
+                type="button"
+                className="mt-3 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-red-500 hover:text-white sm:mt-0 sm:w-auto border-[1px] border-slate-400 hover:border-0"
+                onClick={() => {
+                  setTask(taskDefault);
+                  setShowModal(modalDefault);
+                }}
+              >
+                Cancelar
+              </button>
+            )}
             <button
               type="button"
-              className="mt-3 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-red-500 hover:text-white sm:mt-0 sm:w-auto border-[1px] border-slate-400 hover:border-0"
-              onClick={() => {
-                setTask(taskDefault);
-                setShowModal(modalDefault);
-              }}
-            >
-              Cancelar
-            </button>
-            <button
-              type="button"
+              disabled={disabledButton()}
               onClick={() => {
                 setShowModal({ action: "create", show: false });
                 if (showModal.action === "create") {
@@ -150,6 +183,9 @@ const TodoPage = () => {
                 if (showModal.action === "update") {
                   updateTask(taskSelected);
                 }
+                if (showModal.action === "view") {
+                  setTask(taskDefault);
+                }
               }}
               className="mt-3 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-slate-900 hover:text-white sm:mt-0 sm:w-auto border-[1px] border-slate-400 hover:border-0"
             >
@@ -158,7 +194,7 @@ const TodoPage = () => {
           </div>
         </Modal>
       )}
-      <div className="relative bg-slate-50 rounded-xl overflow-hidden dark:bg-slate-800/30 w-[900px] mt-10">
+      <div className="relative bg-slate-50 rounded-xl overflow-hidden dark:bg-slate-800/30 w-full mt-10 mx-3">
         <div className="flex justify-between items-center mx-5 mt-3">
           <h1 className="text-2xl">Gestiona tus tareas</h1>
           <Button
@@ -167,75 +203,85 @@ const TodoPage = () => {
           />
         </div>
         <div className="shadow-sm overflow-x-auto my-8">
-          <table className="table-fixed w-full">
-            <thead>
-              <tr>
-                <th className="text-start border-b dark:border-slate-600 font-medium p-4 pl-8 pt-0 pb-3 text-slate-400 dark:text-slate-200">
-                  Titulo
-                </th>
-                <th className="text-start border-b dark:border-slate-600 font-medium p-4 pl-8 pt-0 pb-3 text-slate-400 dark:text-slate-200">
-                  Descripcion
-                </th>
-                <th className="text-start border-b dark:border-slate-600 font-medium p-4 pl-8 pt-0 pb-3 text-slate-400 dark:text-slate-200">
-                  Completado
-                </th>
-                <th className="text-start border-b dark:border-slate-600 font-medium p-4 pl-8 pt-0 pb-3 text-slate-400 dark:text-slate-200">
-                  Acciones
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {tasks.map(({ id, title, description, completed }) => (
-                <tr key={id}>
-                  <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
-                    {title}
-                  </td>
-                  <td className="text-start border-b border-slate-100 overflow-x-auto dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
-                    {description}
-                  </td>
-                  <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
-                    {completed ? "Completada" : "No completada"}
-                  </td>
-                  <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
-                    <div className="flex gap-3">
-                      {!completed && (
-                        <MdCheck
+          {
+            tasks && tasks.length > 0 ? (<table className="table-fixed w-full">
+              <thead>
+                <tr>
+                  <th className="text-start border-b dark:border-slate-600 font-medium p-4 pl-8 pt-0 pb-3 text-slate-400 dark:text-slate-200">
+                    Titulo
+                  </th>
+                  <th className="text-start border-b dark:border-slate-600 font-medium p-4 pl-8 pt-0 pb-3 text-slate-400 dark:text-slate-200">
+                    Descripcion
+                  </th>
+                  <th className="text-start border-b dark:border-slate-600 font-medium p-4 pl-8 pt-0 pb-3 text-slate-400 dark:text-slate-200">
+                    Completado
+                  </th>
+                  <th className="text-start border-b dark:border-slate-600 font-medium p-4 pl-8 pt-0 pb-3 text-slate-400 dark:text-slate-200">
+                    Acciones
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {tasks?.map(({ id, title, description, completed }) => (
+                  <tr key={id}>
+                    <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
+                      {title}
+                    </td>
+                    <td className="text-start border-b border-slate-100 overflow-x-auto dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
+                      {description}
+                    </td>
+                    <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
+                      {completed ? "Completada" : "No completada"}
+                    </td>
+                    <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
+                      <div className="flex gap-3 w-[100px]">
+                        <MdRemoveRedEye
+                          className="cursor-pointer"
                           onClick={() => {
-                            completeTask(id);
-                            setShowModal({ action: "completed", show: false });
+                            viewTask(id);
+                            setShowModal({ action: "view", show: true });
                           }}
                         />
-                      )}
-                      <MdEdit
-                        className="cursor-pointer"
-                        onClick={() => {
-                          setTask({
-                            title: title,
-                            description: description,
-                            completed: completed,
-                          });
-                          setTaskSelected(id);
-                          setShowModal({ action: "update", show: true });
-                        }}
-                      />
-                      <MdDelete
-                        className="cursor-pointer"
-                        onClick={() => {
-                          setTask({
-                            title: title,
-                            description: description,
-                            completed: completed,
-                          });
-                          setTaskSelected(id);
-                          setShowModal({ action: "delete", show: true });
-                        }}
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                        {!completed && (
+                          <MdCheck
+                            className="cursor-pointer"
+                            onClick={() => {
+                              completeTask(id);
+                              setShowModal({ action: "completed", show: false });
+                            }}
+                          />
+                        )}
+                        <MdEdit
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setTask({
+                              title: title,
+                              description: description,
+                              completed: completed,
+                            });
+                            setTaskSelected(id);
+                            setShowModal({ action: "update", show: true });
+                          }}
+                        />
+                        <MdDelete
+                          className="cursor-pointer"
+                          onClick={() => {
+                            setTask({
+                              title: title,
+                              description: description,
+                              completed: completed,
+                            });
+                            setTaskSelected(id);
+                            setShowModal({ action: "delete", show: true });
+                          }}
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>) : (<h1 className="text-center text-xl">{"Aun no hay tareas para mostrar 🫣"}</h1>)
+          }
         </div>
       </div>
     </>
