@@ -6,6 +6,7 @@ import Modal from "../components/Modal";
 import Input from "../components/Input";
 import { MdCheck, MdDelete, MdEdit, MdRemoveRedEye } from "react-icons/md";
 import Button from "../components/Button";
+
 const taskDefault = {
   title: "",
   description: "",
@@ -27,7 +28,7 @@ const TodoPage = () => {
 
   useEffect(() => {
     getAll();
-  }, [showModal]);
+  }, [showModal, task]);
 
   const handleChangeCreate = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value, type, checked } = e.target;
@@ -86,10 +87,11 @@ const TodoPage = () => {
     return "";
   };
 
-  const disabledButton = () => {
-    if (task.title !== "" ) return false;
-    if (task.description !== "") return false;
-    return true;
+  const validateInputs = () => {
+    if (task.title === "" || task.description === "") {
+      return true
+    }
+    return false;
   }
 
   return (
@@ -136,13 +138,12 @@ const TodoPage = () => {
                 ?
               </p>
             )}
-
             {showModal.action === "view" && (
               <div className="flex justify-between">
                 <ul className="text-black">
-                  <li>Titulo</li>
-                  <li>Descripcion</li>
-                  <li>Estado de la tarea</li>
+                  <li><strong>Titulo</strong></li>
+                  <li><strong>Descripcion</strong></li>
+                  <li><strong>Estado de la tarea</strong></li>
                 </ul>
                 <ul className="text-black">
                   <li>{task.title}</li>
@@ -171,7 +172,7 @@ const TodoPage = () => {
             )}
             <button
               type="button"
-              disabled={disabledButton()}
+              disabled={validateInputs()}
               onClick={() => {
                 setShowModal({ action: "create", show: false });
                 if (showModal.action === "create") {
@@ -195,7 +196,7 @@ const TodoPage = () => {
         </Modal>
       )}
       <div className="relative bg-slate-50 rounded-xl overflow-hidden dark:bg-slate-800/30 w-full mt-10 mx-3">
-        <div className="flex justify-between items-center mx-5 mt-3">
+        <div className="flex justify-between items-center mx-5 mt-3 max-sm:flex-col max-sm:gap-4">
           <h1 className="text-2xl">Gestiona tus tareas</h1>
           <Button
             text="Crear nueva tarea"
@@ -227,7 +228,7 @@ const TodoPage = () => {
                     <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
                       {title}
                     </td>
-                    <td className="text-start border-b border-slate-100 overflow-x-auto dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
+                    <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
                       {description}
                     </td>
                     <td className="text-start border-b border-slate-100 dark:border-slate-700 p-4 pl-8 text-slate-500 dark:text-slate-400">
@@ -280,7 +281,7 @@ const TodoPage = () => {
                   </tr>
                 ))}
               </tbody>
-            </table>) : (<h1 className="text-center text-xl">{"Aun no hay tareas para mostrar 🫣"}</h1>)
+            </table>) : (<h1 className="text-center text-xl">Aun no hay tareas para mostrar 🫣</h1>)
           }
         </div>
       </div>

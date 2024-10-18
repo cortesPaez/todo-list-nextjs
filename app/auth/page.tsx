@@ -17,7 +17,6 @@ const defaultAuthState = {
 };
 
 const LoginPage = () => {
-  sessionStorage.clear()
   const router = useRouter();
   const [formAuth, setFormAuth] = useState<Body>(defaultAuthState);
   const [formType, setTypeForm] = useState<string>("login");
