@@ -2,9 +2,9 @@
 
 import React, { ChangeEvent, useEffect, useState } from "react";
 import { TodoListService } from "../services/todo-list";
+import { MdCheck, MdDelete, MdEdit, MdRemoveRedEye } from "react-icons/md";
 import Modal from "../components/Modal";
 import Input from "../components/Input";
-import { MdCheck, MdDelete, MdEdit, MdRemoveRedEye } from "react-icons/md";
 import Button from "../components/Button";
 
 const taskDefault = {
@@ -161,7 +161,7 @@ const TodoPage = () => {
             {showModal.action !== "view" && (
               <button
                 type="button"
-                className="mt-3 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-red-500 hover:text-white sm:mt-0 sm:w-auto border-[1px] border-slate-400 hover:border-0"
+                className="mt-3 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-red-500 hover:text-white sm:mt-0 sm:w-auto border-[1px] border-slate-400 hover:border-0 hover:border-[1px] hover:border-red-500"
                 onClick={() => {
                   setTask(taskDefault);
                   setShowModal(modalDefault);
@@ -188,7 +188,7 @@ const TodoPage = () => {
                   setTask(taskDefault);
                 }
               }}
-              className="mt-3 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-slate-900 hover:text-white sm:mt-0 sm:w-auto border-[1px] border-slate-400 hover:border-0"
+              className="mt-3 w-full justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 hover:bg-slate-900 hover:text-white sm:mt-0 sm:w-auto border-[1px] border-slate-400 hover:border-0 hover:border-0 hover:border-[1px] hover:border-slate-400"
             >
               {getButtonTextModal()}
             </button>
