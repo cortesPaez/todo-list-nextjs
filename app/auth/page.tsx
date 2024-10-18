@@ -31,7 +31,7 @@ const LoginPage = () => {
     });
   };
 
-  const handleSubmit = (e: ChangeEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: ChangeEvent<HTMLFormElement>) => {
     e.preventDefault();
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!formAuth.email || !formAuth.password) {
@@ -47,14 +47,24 @@ const LoginPage = () => {
     setError("");
 
     if (formType === "login") {
-      AuthService.login(formAuth);
-      router.push("/tasks");
+      const response = await AuthService.login(formAuth);
+      console.log(response)
+      if (response.message === "invalid password") return setError("Contraseña invalida");
+      if (response.message === "user not found") return setError("El usuario no existe");
+      if (response.message === "successful") {
+        setError("")
+        router.push("/tasks");
+      }
     }
 
     if (formType === "register") {
-      AuthService.register(formAuth);
-      setFormAuth({...formAuth, password: ""})
-      setTypeForm("login");
+      const response = await AuthService.register(formAuth);
+      if (response.message === "email already exist") return setError("El usuario ya existe");
+      if (response.message === "successful") {
+        setError("")
+        setTypeForm("login");
+        setFormAuth({...formAuth, password: ""})
+      }
     }
   };
 

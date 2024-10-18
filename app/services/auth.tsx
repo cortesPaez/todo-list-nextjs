@@ -15,12 +15,9 @@ const login = async (body: Body) => {
       body: JSON.stringify(body),
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch data')
-    }
-
     const result = await response.json();
     sessionStorage.setItem("token", result.token)
+    return result
   } catch (error) {
     console.error("Error:", error);
   }
@@ -36,12 +33,8 @@ const register = async (body: Body) => {
       body: JSON.stringify(body),
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch data')
-    }
-
     const result = await response.json();
-    console.log("Success:", result);
+    return result;
   } catch (error) {
     console.error("Error:", error);
   }
